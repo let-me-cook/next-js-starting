@@ -1,13 +1,13 @@
-const { db } = require('@vercel/postgres');
-const {
+import { VercelPoolClient, db } from "@vercel/postgres";
+import {
   invoices,
   customers,
-  revenue,
+  revenues,
   users,
-} = require('../app/lib/placeholder-data.js');
-const bcrypt = require('bcrypt');
+} from "../app/lib/placeholder-data.js";
+import bcrypt from "bcrypt";
 
-async function seedUsers(client) {
+async function seedUsers(client: VercelPoolClient) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
     // Create the "invoices" table if it doesn't exist
@@ -31,7 +31,7 @@ async function seedUsers(client) {
         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
         ON CONFLICT (id) DO NOTHING;
       `;
-      }),
+      })
     );
 
     console.log(`Seeded ${insertedUsers.length} users`);
@@ -41,12 +41,12 @@ async function seedUsers(client) {
       users: insertedUsers,
     };
   } catch (error) {
-    console.error('Error seeding users:', error);
+    console.error("Error seeding users:", error);
     throw error;
   }
 }
 
-async function seedInvoices(client) {
+async function seedInvoices(client: VercelPoolClient) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
@@ -70,8 +70,8 @@ async function seedInvoices(client) {
         INSERT INTO invoices (customer_id, amount, status, date)
         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
         ON CONFLICT (id) DO NOTHING;
-      `,
-      ),
+      `
+      )
     );
 
     console.log(`Seeded ${insertedInvoices.length} invoices`);
@@ -81,12 +81,12 @@ async function seedInvoices(client) {
       invoices: insertedInvoices,
     };
   } catch (error) {
-    console.error('Error seeding invoices:', error);
+    console.error("Error seeding invoices:", error);
     throw error;
   }
 }
 
-async function seedCustomers(client) {
+async function seedCustomers(client: VercelPoolClient) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
@@ -109,8 +109,8 @@ async function seedCustomers(client) {
         INSERT INTO customers (id, name, email, image_url)
         VALUES (${customer.id}, ${customer.name}, ${customer.email}, ${customer.image_url})
         ON CONFLICT (id) DO NOTHING;
-      `,
-      ),
+      `
+      )
     );
 
     console.log(`Seeded ${insertedCustomers.length} customers`);
@@ -120,12 +120,12 @@ async function seedCustomers(client) {
       customers: insertedCustomers,
     };
   } catch (error) {
-    console.error('Error seeding customers:', error);
+    console.error("Error seeding customers:", error);
     throw error;
   }
 }
 
-async function seedRevenue(client) {
+async function seedRevenue(client: VercelPoolClient) {
   try {
     // Create the "revenue" table if it doesn't exist
     const createTable = await client.sql`
@@ -139,13 +139,13 @@ async function seedRevenue(client) {
 
     // Insert data into the "revenue" table
     const insertedRevenue = await Promise.all(
-      revenue.map(
+      revenues.map(
         (rev) => client.sql`
         INSERT INTO revenue (month, revenue)
         VALUES (${rev.month}, ${rev.revenue})
         ON CONFLICT (month) DO NOTHING;
-      `,
-      ),
+      `
+      )
     );
 
     console.log(`Seeded ${insertedRevenue.length} revenue`);
@@ -155,7 +155,7 @@ async function seedRevenue(client) {
       revenue: insertedRevenue,
     };
   } catch (error) {
-    console.error('Error seeding revenue:', error);
+    console.error("Error seeding revenue:", error);
     throw error;
   }
 }
@@ -167,13 +167,11 @@ async function main() {
   await seedCustomers(client);
   await seedInvoices(client);
   await seedRevenue(client);
-
-  await client.end();
 }
 
 main().catch((err) => {
   console.error(
-    'An error occurred while attempting to seed the database:',
-    err,
+    "An error occurred while attempting to seed the database:",
+    err
   );
 });
